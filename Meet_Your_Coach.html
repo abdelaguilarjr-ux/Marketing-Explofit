@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Conoce a tu coach — Carrusel · Explofit</title>
+<link rel="stylesheet" href="colors_and_type.css" />
+<style>
+  @font-face {
+    font-family: "TAN Meringue";
+    src: url("fonts/tan-meringue.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    --ember: #C5532B;
+    --font-tan: "TAN Meringue", var(--font-serif);
+    --ember-deep: #9E3F1E;
+    --ember-soft: #E07845;
+    --ink-true: #141210;
+  }
+  html, body { margin: 0; background: #0e0d0c; color: var(--warm-cream); font-family: var(--font-sans); }
+
+  /* ---------- Page chrome ---------- */
+  .page { min-height: 100vh; display: flex; flex-direction: column; padding: clamp(18px,3vw,38px) clamp(16px,4vw,56px) 26px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: clamp(14px,2.2vw,26px); }
+  .page-head .eyebrow { color: var(--ember-soft); display:block; margin-bottom: 8px; letter-spacing:0.3em; }
+  .page-head h1 { font-family: var(--font-serif); font-style: italic; font-weight: 500; font-size: clamp(26px,3.4vw,42px); line-height: 1; color: var(--warm-cream); margin:0; }
+  .page-head .meta { text-align: right; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: #8c8780; line-height: 1.7; }
+  .page-head .meta b { color: var(--warm-cream); font-weight: 600; }
+
+  /* ---------- Filmstrip ---------- */
+  .strip-wrap { position: relative; flex: 1; min-height: 0; }
+  .strip { display: flex; gap: clamp(18px,2.2vw,34px); overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; height: 100%; align-items: center; padding: 6px clamp(8px,6vw,120px); scrollbar-width: thin; scrollbar-color: #3a3a3a transparent; }
+  .strip::-webkit-scrollbar { height: 8px; }
+  .strip::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 99px; }
+  .strip::-webkit-scrollbar-track { background: transparent; }
+  .slot { scroll-snap-align: center; flex: 0 0 auto; position: relative; }
+  .slot .num { position: absolute; top: -2px; left: 50%; transform: translate(-50%,-130%); font-size: 11px; letter-spacing: 0.3em; color: #6f6a64; font-weight: 600; }
+  .frame { width: calc(1080px * var(--scale)); height: calc(1350px * var(--scale)); box-shadow: 0 30px 70px rgba(0,0,0,0.55); overflow: hidden; }
+  .canvas { width: 1080px; height: 1350px; transform: scale(var(--scale)); transform-origin: top left; position: relative; overflow: hidden; font-size: 16px; }
+
+  .navbtn { position: absolute; top: 50%; transform: translateY(-50%); width: 52px; height: 52px; border-radius: 999px; border: 1px solid rgba(247,244,240,0.18); background: rgba(20,18,16,0.72); backdrop-filter: blur(8px); color: var(--warm-cream); font-size: 20px; cursor: pointer; display: grid; place-items: center; transition: background var(--dur-base) var(--ease); z-index: 5; }
+  .navbtn:hover { background: var(--ember); border-color: var(--ember); }
+  .navbtn.prev { left: 10px; } .navbtn.next { right: 10px; }
+
+  /* =====================================================================
+     POSTER PRIMITIVES — native 1080×1350
+     ===================================================================== */
+  .slide { position: absolute; inset: 0; overflow: hidden; }
+  .pad { position: absolute; inset: 0; padding: 78px 76px; display: flex; flex-direction: column; }
+
+  .bg-ink   { background: var(--ink-true); color: var(--warm-cream); }
+  .bg-cream { background: var(--warm-cream); color: var(--deep-ink); }
+  .bg-gold  { background: var(--gold-sand); color: var(--deep-ink); }
+  .bg-ember { background: var(--ember); color: var(--warm-cream); }
+
+  /* top utility row */
+  .toprow { display:flex; align-items:center; justify-content:space-between; }
+  .wm { font-family: var(--font-sans); font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; font-size: 22px; }
+  .tag { font-family: var(--font-sans); font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; font-size: 17px; white-space: nowrap; }
+
+  .kicker { font-family: var(--font-tan); font-style: normal; font-weight: 400; font-size: 50px; line-height: 1; }
+
+  /* mega type */
+  .mega { font-family: var(--font-sans); font-weight: 800; text-transform: uppercase; line-height: 0.82; letter-spacing: -0.02em; }
+  .outline { color: transparent; -webkit-text-stroke: 2.5px currentColor; }
+  .serif { font-family: var(--font-serif); font-style: italic; font-weight: 500; line-height: 1.0; letter-spacing: 0; }
+
+  .lede { font-family: var(--font-sans); font-weight: 500; line-height: 1.32; }
+  .body { font-family: var(--font-sans); font-weight: 400; line-height: 1.5; margin:0; }
+
+  /* giant background index numeral */
+  .ghost-num { position: absolute; font-family: var(--font-sans); font-weight: 800; line-height: 0.7; letter-spacing: -0.04em; pointer-events: none; }
+
+  /* benefit chips */
+  .chips { display:flex; flex-wrap:wrap; gap: 14px; }
+  .chip { font-family: var(--font-sans); font-weight: 700; font-size: 24px; letter-spacing:0.01em; padding: 14px 28px; border-radius: 999px; display:flex; align-items:center; gap:12px; white-space:nowrap; }
+  .chip::before { content:"\2192"; font-weight: 800; }
+
+  /* stat number */
+  .statnum { font-family: var(--font-sans); font-weight: 800; line-height: 0.85; letter-spacing: -0.03em; }
+  .statlbl { font-family: var(--font-sans); font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; font-size: 16px; }
+
+  /* marquee */
+  .marquee { overflow: hidden; white-space: nowrap; width: 100%; }
+  .marquee > .track { display: inline-flex; will-change: transform; animation: scrollx 22s linear infinite; }
+  .marquee .unit { font-family: var(--font-sans); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding-right: 0.5em; }
+  @keyframes scrollx { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  .swipe { font-family: var(--font-sans); font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; font-size: 19px; display:flex; align-items:center; gap: 14px; }
+  .swipe .arrow { display:inline-block; animation: nudge 1.4s var(--ease) infinite; }
+  @keyframes nudge { 0%,100%{ transform: translateX(0);} 50%{ transform: translateX(10px);} }
+
+  .dots { display:flex; gap:8px; align-items:center; }
+  .dots i { width:8px; height:8px; border-radius:999px; background: currentColor; opacity:0.3; display:block; }
+  .dots i.on { opacity:1; width:26px; border-radius:99px; }
+
+  .btn { font-family: var(--font-sans); font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; font-size: 26px; padding: 24px 40px; border-radius: 999px; display:inline-flex; align-items:center; gap:14px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="page-head">
+    <div>
+      <span class="eyebrow">Campaña de feed · Instagram</span>
+      <h1>Conoce a tu coach</h1>
+    </div>
+    <div class="meta">
+      <div><b>Explofit</b> · Michelle Calderón</div>
+      <div>Carrusel · 6 slides · 1080 × 1350</div>
+    </div>
+  </header>
+
+  <div class="strip-wrap">
+    <button class="navbtn prev" aria-label="Anterior">&#8249;</button>
+    <div class="strip" id="strip">
+
+      <!-- ============ SLIDE 1 — COVER / HOOK ============ -->
+      <div class="slot"><span class="num">01 / 06</span>
+      <div class="frame"><div class="canvas">
+        <section class="slide bg-cream" data-screen-label="01 · Portada">
+          <div class="ghost-num" style="font-size:700px; color:rgba(200,168,130,0.16); top:-220px; right:-180px;">✦</div>
+          <div class="pad">
+            <div class="toprow">
+              <span class="wm" style="color:var(--deep-ink);">Explofit</span>
+              <span class="tag" style="color:var(--gold-dark);">01 — 06</span>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:22px; margin-top:28px;">
+              <span style="display:block; width:64px; height:1px; background:var(--gold-sand);"></span>
+              <span class="tag" style="color:var(--gold-dark);">Lagree · Sculpt · Hot Sculpt</span>
+            </div>
+
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+              <div class="kicker" style="color:var(--gold-dark); margin-bottom:18px;">(conoce a tu coach)</div>
+              <h2 class="mega" style="font-size:148px; color:var(--deep-ink);">Michelle</h2>
+              <h2 style="font-family:var(--font-tan); font-weight:400; font-size:140px; line-height:1.0; color:var(--gold-dark); margin-top:10px;">Calderón</h2>
+              <p class="lede" style="font-size:33px; color:#46423d; margin:36px 0 0; max-width:760px;">
+                Entrenar menos y lograr más <span style="color:var(--ember); font-weight:700;">sí es posible.</span> Te muestro cómo.
+              </p>
+            </div>
+
+            <div style="display:flex; align-items:flex-end; justify-content:space-between;">
+              <div class="swipe" style="color:var(--gold-dark);">Desliza <span class="arrow" aria-hidden="true">&#8594;</span></div>
+              <span class="dots" style="color:var(--deep-ink);"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span>
+            </div>
+          </div>
+        </section>
+      </div></div></div>
+
+      <!-- ============ SLIDE 2 — HISTORIA ============ -->
+      <div class="slot"><span class="num">02 / 06</span>
+      <div class="frame"><div class="canvas">
+        <section class="slide bg-cream" data-screen-label="02 · Mi historia">
+          <div class="pad">
+            <div class="toprow">
+              <span class="tag" style="color:var(--ember);">Mi historia</span>
+              <span class="tag" style="color:var(--gold-dark);">02 — 06</span>
+            </div>
+
+            <h2 class="serif" style="font-size:74px; color:var(--deep-ink); margin-top:40px;">Empecé en los resorts<br/>más <span style="color:var(--ember);">exclusivos</span> del mundo.</h2>
+            <p class="body" style="font-size:29px; color:#3a3733; margin-top:26px; max-width:840px;">
+              De <strong>Miches</strong> a <strong>Turks &amp; Caicos</strong>, daba hasta ocho clases al día a huéspedes de toda edad, nivel y huso horario. Ahí entendí lo único que importa: el mejor entrenamiento es el que puedes <strong>repetir mañana.</strong>
+            </p>
+
+            <div style="display:flex; gap:48px; margin-top:54px; flex-wrap:wrap;">
+              <div><div class="statnum" style="font-size:120px; color:var(--ember);">900<span style="font-size:0.5em;">+</span></div><div class="statlbl" style="color:var(--gold-dark); margin-top:8px;">Clientes</div></div>
+              <div><div class="statnum" style="font-size:120px; color:var(--deep-ink);">4</div><div class="statlbl" style="color:var(--gold-dark); margin-top:8px;">Continentes</div></div>
+              <div><div class="statnum" style="font-size:120px; color:var(--deep-ink);">5<span style="font-size:0.5em;">+</span></div><div class="statlbl" style="color:var(--gold-dark); margin-top:8px;">Años coach</div></div>
+              <div><div class="statnum" style="font-size:120px; color:var(--deep-ink);">4</div><div class="statlbl" style="color:var(--gold-dark); margin-top:8px;">Idiomas</div></div>
+            </div>
+
+            <div style="margin-top:auto; background:var(--deep-ink); color:var(--warm-cream); padding:34px 40px; border-radius:8px; display:flex; align-items:center; gap:24px;">
+              <span class="mega" style="font-size:58px; color:var(--ember-soft); line-height:0.9;">«</span>
+              <div>
+                <div class="mega" style="font-size:40px; letter-spacing:0; color:var(--warm-cream);">Result per hour.</div>
+                <div class="body" style="font-size:24px; color:#c9c4bd; margin-top:6px;">Sin lesión, sin culpa, sin excusa de tiempo.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div></div></div>
+
+      <!-- ============ SLIDE 3 — LAGREE (01) ============ -->
+      <div class="slot"><span class="num">03 / 06</span>
+      <div class="frame"><div class="canvas">
+        <section class="slide bg-gold" data-screen-label="03 · Lagree">
+          <div class="ghost-num" style="font-size:760px; color:rgba(20,18,16,0.10); bottom:-120px; right:-40px;">01</div>
+          <div class="pad">
+            <div class="toprow">
+              <span class="tag" style="color:var(--deep-ink);">✦ Método 01</span>
+              <span class="tag" style="color:var(--ember-deep);">Microformer · 50 min</span>
+            </div>
+
+            <div style="margin-top:64px;">
+              <h2 class="mega" style="font-size:228px; color:var(--deep-ink);">Lagree</h2>
+              <p class="lede" style="font-size:38px; color:var(--ink-true); margin:24px 0 0; max-width:720px;">Alta intensidad, baja velocidad. <span style="color:var(--ember-deep);">Tensión muscular constante.</span></p>
+            </div>
+
+            <p class="body" style="font-size:28px; color:#4a3f30; margin-top:30px; max-width:780px;">
+              Trabajo sobre el <strong>Microformer</strong> — resortes y plataforma deslizante que mantienen el músculo bajo tensión los 50 minutos. Lento, controlado, sin pausas.
+            </p>
+
+            <div class="chips" style="margin-top:36px;">
+              <span class="chip" style="background:var(--deep-ink); color:var(--warm-cream);">Fuerza sin volumen</span>
+              <span class="chip" style="background:var(--deep-ink); color:var(--warm-cream);">Cero impacto</span>
+              <span class="chip" style="background:var(--deep-ink); color:var(--warm-cream);">Core profundo</span>
+            </div>
+
+            <div style="margin-top:auto; display:flex; align-items:flex-end; justify-content:space-between;">
+              <div style="display:flex; align-items:baseline; gap:16px;">
+                <span class="statnum" style="font-size:96px; color:var(--ember-deep);">3.ª</span>
+                <span class="lede" style="font-size:28px; color:var(--deep-ink);">sesión y ya<br/>ves el cambio.</span>
+              </div>
+              <span class="dots" style="color:var(--deep-ink);"><i></i><i></i><i class="on"></i><i></i><i></i><i></i></span>
+            </div>
+          </div>
+        </section>
+      </div></div></div>
+
+      <!-- ============ SLIDE 4 — SCULPT (02) ============ -->
+      <div class="slot"><span class="num">04 / 06</span>
+      <div class="frame"><div class="canvas">
+        <section class="slide bg-cream" data-screen-label="04 · Sculpt">
+          <div class="ghost-num" style="font-size:760px; color:rgba(197,83,43,0.10); bottom:-120px; right:-30px;">02</div>
+          <div class="pad">
+            <div class="toprow">
+              <span class="tag" style="color:var(--ember);">✦ Método 02</span>
+              <span class="tag" style="color:var(--gold-dark);">Full body · 45–55 min</span>
+            </div>
+
+            <div style="margin-top:64px;">
+              <h2 class="mega" style="font-size:228px; color:var(--deep-ink);">Sculpt</h2>
+              <p class="lede" style="font-size:38px; color:var(--ink-true); margin:24px 0 0; max-width:720px;">Tonificación funcional. <span style="color:var(--ember);">Alta repetición, tiempo bajo tensión.</span></p>
+            </div>
+
+            <p class="body" style="font-size:28px; color:#3a3733; margin-top:30px; max-width:780px;">
+              Full-body con <strong>peso corporal, mancuernas y bandas</strong>. Activa varios grupos musculares en cada movimiento — sin máquina especializada.
+            </p>
+
+            <div class="chips" style="margin-top:36px;">
+              <span class="chip" style="background:var(--ember); color:var(--warm-cream);">Definición sin volumen</span>
+              <span class="chip" style="background:var(--ember); color:var(--warm-cream);">Todos los niveles</span>
+              <span class="chip" style="background:var(--ember); color:var(--warm-cream);">Desde el día uno</span>
+            </div>
+
+            <div style="margin-top:auto; display:flex; align-items:flex-end; justify-content:space-between;">
+              <div class="serif" style="font-size:44px; color:var(--deep-ink); max-width:620px;">La puerta de entrada perfecta al método.</div>
+              <span class="dots" style="color:var(--deep-ink);"><i></i><i></i><i></i><i class="on"></i><i></i><i></i></span>
+            </div>
+          </div>
+        </section>
+      </div></div></div>
+
+      <!-- ============ SLIDE 5 — HOT SCULPT (03) ============ -->
+      <div class="slot"><span class="num">05 / 06</span>
+      <div class="frame"><div class="canvas">
+        <section class="slide bg-ember" data-screen-label="05 · Hot Sculpt">
+          <div class="ghost-num" style="font-size:760px; color:rgba(255,255,255,0.12); bottom:-120px; right:-30px;">03</div>
+          <div class="pad">
+            <div class="toprow">
+              <span class="tag" style="color:var(--warm-cream);">✦ Método 03</span>
+              <span class="tag" style="color:rgba(255,236,222,0.85);">Calor 32–38°C · 50 min</span>
+            </div>
+
+            <div style="margin-top:46px;">
+              <h2 class="mega" style="font-size:172px; color:var(--warm-cream); line-height:0.84;">Hot<br/>Sculpt</h2>
+              <p class="lede" style="font-size:38px; color:#ffeee4; margin:26px 0 0; max-width:720px;">El Sculpt potenciado en calor infrarrojo.</p>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:30px; margin-top:36px;">
+              <div class="statnum" style="font-size:200px; color:var(--warm-cream);">+30<span style="font-size:0.4em;">%</span></div>
+              <div class="lede" style="font-size:30px; color:#ffeee4; line-height:1.25;">más quema<br/>en el mismo<br/>tiempo.</div>
+            </div>
+
+            <div class="chips" style="margin-top:34px;">
+              <span class="chip" style="background:var(--ink-true); color:var(--warm-cream);">Mayor rango de movimiento</span>
+              <span class="chip" style="background:var(--ink-true); color:var(--warm-cream);">Sudor que apoya el detox</span>
+            </div>
+
+            <div style="margin-top:auto; display:flex; align-items:flex-end; justify-content:flex-end;">
+              <span class="dots" style="color:var(--warm-cream);"><i></i><i></i><i></i><i></i><i class="on"></i><i></i></span>
+            </div>
+          </div>
+        </section>
+      </div></div></div>
+
+      <!-- ============ SLIDE 6 — CTA ============ -->
+      <div class="slot"><span class="num">06 / 06</span>
+      <div class="frame"><div class="canvas">
+        <section class="slide bg-ink" data-screen-label="06 · Empecemos">
+          <div class="ghost-num" style="font-size:1000px; color:rgba(197,83,43,0.10); top:-160px; left:-180px;">✦</div>
+          <div class="pad">
+            <div class="toprow">
+              <span class="wm" style="color:var(--warm-cream);">Explofit</span>
+              <span class="tag" style="color:var(--ember-soft);">06 — 06</span>
+            </div>
+
+            <div style="margin-top:auto;">
+              <div class="kicker" style="color:var(--gold-sand); margin-bottom:20px;">(empecemos)</div>
+              <h2 class="mega" style="font-size:118px; color:var(--warm-cream);">Tu primera clase<br/>empieza en un<br/><span style="color:var(--ember-soft);">DM.</span></h2>
+              <p class="lede" style="font-size:32px; color:var(--warm-cream); opacity:.9; margin:30px 0 0; max-width:780px;">
+                Escríbeme y armamos tu plan — estudio, horario y nivel. Sin compromiso, solo una conversación.
+              </p>
+
+              <div style="display:flex; gap:18px; margin-top:46px; flex-wrap:wrap;">
+                <span class="btn" style="background:var(--ember); color:var(--warm-cream);">Reserva por DM <span aria-hidden="true">&#8594;</span></span>
+                <span class="btn" style="background:transparent; color:var(--warm-cream); border:2px solid rgba(247,244,240,0.4);">Sígueme · @xplofit</span>
+              </div>
+            </div>
+
+            <div class="marquee" style="margin-top:48px; color:var(--gold-sand); border-top:2px solid rgba(200,168,130,0.3); padding-top:18px;">
+              <div class="track"><span class="unit" style="font-size:28px;">@xplofit&nbsp;·&nbsp;Result per hour&nbsp;·&nbsp;Lagree · Sculpt · Hot Sculpt&nbsp;·&nbsp;</span><span class="unit" style="font-size:28px;">@xplofit&nbsp;·&nbsp;Result per hour&nbsp;·&nbsp;Lagree · Sculpt · Hot Sculpt&nbsp;·&nbsp;</span></div>
+            </div>
+          </div>
+        </section>
+      </div></div></div>
+
+    </div>
+    <button class="navbtn next" aria-label="Siguiente">&#8250;</button>
+  </div>
+</div>
+
+<script>
+  var strip = document.getElementById('strip');
+  function fit() {
+    var wrap = strip.parentElement;
+    var avail = wrap.clientHeight - 30;
+    var maxByW = (window.innerWidth * 0.62);
+    var scale = Math.min(avail / 1350, maxByW / 1080);
+    scale = Math.max(0.18, Math.min(scale, 0.6));
+    document.documentElement.style.setProperty('--scale', scale.toFixed(4));
+  }
+  window.addEventListener('resize', fit); fit();
+
+  function step(dir) {
+    var slot = strip.querySelector('.slot');
+    if (!slot) return;
+    var w = slot.getBoundingClientRect().width + 26;
+    strip.scrollBy({ left: dir * w, behavior: 'smooth' });
+  }
+  document.querySelector('.navbtn.prev').addEventListener('click', function(){ step(-1); });
+  document.querySelector('.navbtn.next').addEventListener('click', function(){ step(1); });
+  window.addEventListener('keydown', function(e){ if (e.key==='ArrowLeft') step(-1); if (e.key==='ArrowRight') step(1); });
+</script>
+</body>
+</html>
