@@ -1,3 +1,6 @@
 .claude/settings.local.json
 assets/*.png
 fonts/*.woff2
+node_modules/
+package-lock.json
+package.json
